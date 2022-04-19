@@ -18,10 +18,13 @@ import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
 import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
 import { Task } from './task.entity';
 import { TasksService } from './tasks.service';
+import { Logger } from '@nestjs/common';
+import { json } from 'stream/consumers';
 
 @Controller('tasks')
 @UseGuards(AuthGuard())
 export class TasksController {
+  private logger = new Logger('TaskController');
   constructor(private tasksService: TasksService) {}
 
   @Get()
@@ -29,11 +32,20 @@ export class TasksController {
     @Query() filterDto: GetTasksFilterDto,
     @GetUser() user: User,
   ): Promise<Task[]> {
+    console.log(filterDto);
+    if (Object.keys(filterDto).length) {
+      this.logger.verbose(
+        `User ${user.username} get tasks by ${JSON.stringify(filterDto)}}`,
+      );
+    } else {
+      this.logger.verbose(`User ${user.username} get all tasks`);
+    }
     return this.tasksService.getTasks(filterDto, user);
   }
 
   @Get('/:id')
   getTaskById(@Param('id') id: string, @GetUser() user: User): Promise<Task> {
+    this.logger.verbose(`User ${user.username} get task with id=${id}...`);
     return this.tasksService.getTaskById(id, user);
   }
 
@@ -42,11 +54,13 @@ export class TasksController {
     @Body() createTaskDto: CreateTaskDto,
     @GetUser() user: User,
   ): Promise<Task> {
+    this.logger.verbose(`User ${user.username} created new task...`);
     return this.tasksService.createTask(createTaskDto, user);
   }
 
   @Delete('/:id')
   deleteTask(@Param('id') id: string, user: User): Promise<void> {
+    this.logger.verbose(`User ${user.username} delete tasks with id=${id}...`);
     return this.tasksService.deleteTask(id, user);
   }
 
@@ -57,6 +71,7 @@ export class TasksController {
     @GetUser() user: User,
   ): Promise<Task> {
     const { status } = updateTaskStatusDto;
+    this.logger.verbose(`User ${user.username} update tasks with id=${id}...`);
     return this.tasksService.updateTaskStatus(id, status, user);
   }
 }
