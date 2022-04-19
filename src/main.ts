@@ -12,5 +12,6 @@ async function bootstrap() {
 
   await app.listen(3000);
   logger.log('App listening on port 3000');
+  //console.log(process.env);
 }
 bootstrap();
